@@ -1,6 +1,6 @@
 {
     "name": "@bisxsh/react-click-fluid-distortion",
-    "description": "A react-three-fiber component for creating fluid distortion effects",
+    "description": "A react-three-fiber component for creating fluid distortion effects, modified from https://github.com/whatisjery/react-fluid-distortion",
     "author": "Jeremie Nallet",
     "private": false,
     "version": "1.5.1-click.1",
