@@ -17,9 +17,16 @@ export const usePointer = ({ force }: { force: number }) => {
 
     const lastMouse = useRef<Vector2>(new Vector2());
     const hasMoved = useRef<boolean>(false);
+    const isDown = useRef<boolean>(false);
 
     const onPointerMove = useCallback(
         (event: { x: number; y: number }) => {
+            if (!isDown.current) {
+                lastMouse.current.set(event.x, event.y);
+                hasMoved.current = false;
+                return;
+            }
+
             const deltaX = event.x - lastMouse.current.x;
             const deltaY = event.y - lastMouse.current.y;
 
@@ -43,12 +50,32 @@ export const usePointer = ({ force }: { force: number }) => {
         [force, size.height, size.width, splatStack],
     );
 
+    const onPointerDown = useCallback((event: { x: number; y: number }) => {
+        isDown.current = true;
+        hasMoved.current = false;
+        lastMouse.current.set(event.x, event.y);
+    }, []);
+
+    const onPointerUp = useCallback(() => {
+        isDown.current = false;
+        hasMoved.current = false;
+    }, []);
+
     useEffect(() => {
         addEventListener('pointermove', onPointerMove);
+        addEventListener('pointerdown', onPointerDown);
+        addEventListener('pointerup', onPointerUp);
+        addEventListener('pointerleave', onPointerUp);
+        addEventListener('pointercancel', onPointerUp);
+
         return () => {
             removeEventListener('pointermove', onPointerMove);
+            removeEventListener('pointerdown', onPointerDown);
+            removeEventListener('pointerup', onPointerUp);
+            removeEventListener('pointerleave', onPointerUp);
+            removeEventListener('pointercancel', onPointerUp);
         };
-    }, [onPointerMove]);
+    }, [onPointerMove, onPointerDown, onPointerUp]);
 
     return splatStack;
 };
