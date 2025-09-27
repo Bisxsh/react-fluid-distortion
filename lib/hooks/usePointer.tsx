@@ -38,13 +38,45 @@ export const usePointer = ({ force }: { force: number }) => {
 
             lastMouse.current.set(event.x, event.y);
 
+            const dx = deltaX;
+            const dy = deltaY;
+            const speed = Math.sqrt(dx * dx + dy * dy);
+
+            let dirX = 0;
+            let dirY = 0;
+            if (speed > 0.0001) {
+                dirX = dx / speed;
+                dirY = dy / speed;
+            }
+
+            const offset = Math.min(60, Math.max(8, speed * 0.5));
+            const spawnX = event.x - dirX * offset;
+            const spawnY = event.y - dirY * offset;
+
+            const lateralFactor = 0.5;
+            const backwardFactor = 0.25;
+            const lateral = Math.max(1, speed) * lateralFactor;
+            const backward = Math.max(0.5, speed) * backwardFactor;
+
+            let perpX = -dirY;
+            let perpY = dirX;
+            if (Math.abs(perpX) < 1e-6 && Math.abs(perpY) < 1e-6) {
+                perpX = 1;
+                perpY = 0;
+            }
+
+            const side = Math.random() > 0.5 ? 1 : -1;
+
+            const velX = (perpX * lateral * side - dirX * backward) * force;
+            const velY = -((perpY * lateral * side - dirY * backward) * force);
+
             const splatInfo = {
-                mouseX: event.x / size.width,
-                mouseY: 1.0 - event.y / size.height,
-                velocityX: deltaX * force,
-                velocityY: -deltaY * force,
+                mouseX: spawnX / size.width,
+                mouseY: 1.0 - spawnY / size.height,
+                velocityX: velX,
+                velocityY: velY,
             };
-            // console.log(splatInfo.mouseX, splatInfo.mouseY)
+
             splatStack.push(splatInfo);
         },
         [force, size.height, size.width, splatStack],
